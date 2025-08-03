@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UDP WebRTC Stream</title>
+</head>
+<body>
+  <h1>UDP Stream via WebRTC</h1>
+  <video id="video" autoplay playsinline controls></video>
+
+  <script>
+    const pc = new RTCPeerConnection();
+    const video = document.getElementById("video");
+
+    pc.ontrack = (event) => {
+      video.srcObject = event.streams[0];
+    };
+
+    async function start() {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const res = await fetch("/offer", {
+        method: "POST",
+        body: JSON.stringify(pc.localDescription),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const answer = await res.json();
+      await pc.setRemoteDescription(answer);
+    }
+
+    start();
+  </script>
+</body>
+</html>
